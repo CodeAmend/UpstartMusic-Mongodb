@@ -11,22 +11,29 @@ const Artist = require('../models/artist');
 module.exports = (criteria, sortProperty, offset = 0, limit = 20) => {
   const searchQuery = {};
 
-  if (criteria.age) {
-     searchQuery.age = { $gt: criteria.age.min, $lt: criteria.age.max };
-  }
-  if (criteria.yearsActive) {
-    searchQuery.yearsActive = { $gt: criteria.yearsActive.min, $lt: criteria.yearsActive.max };
+  if (criteria.name !== '') {
+    searchQuery.name = { name: { $text: criteria.name } };
   }
 
-  return Artist
+  if (criteria.age) {
+     searchQuery.age = { $gte: criteria.age.min, $lte: criteria.age.max };
+  }
+  if (criteria.yearsActive) {
+    searchQuery.yearsActive = { $gte: criteria.yearsActive.min, $lte: criteria.yearsActive.max };
+  }
+
+
+  const query = Artist
     .find(searchQuery)
     .sort(sortProperty: 1)
     .limit(limit)
-    .skip(offset)
-    .then((artists) => {
+    .skip(offset);
+
+  return Promise.all([query, Artist.count()])
+    .then((results) => {
       return {
-        all: artists,
-        count: artists.length,
+        all: results[0],
+        count: results[1],
         offset,
         limit
       };
