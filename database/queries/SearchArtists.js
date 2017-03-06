@@ -12,7 +12,7 @@ module.exports = (criteria, sortProperty, offset = 0, limit = 20) => {
   const searchQuery = {};
 
   if (criteria.name !== '') {
-    searchQuery.name = { name: { $text: criteria.name } };
+    searchQuery.$text = { $search: criteria.name };
   }
 
   if (criteria.age) {
@@ -29,7 +29,7 @@ module.exports = (criteria, sortProperty, offset = 0, limit = 20) => {
     .limit(limit)
     .skip(offset);
 
-  return Promise.all([query, Artist.count()])
+  return Promise.all([query, Artist.find(searchQuery).count()])
     .then((results) => {
       return {
         all: results[0],
